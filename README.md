@@ -13,6 +13,10 @@ A custom Home Assistant Lovelace card that brings the power of [reveal.js](https
 - ⚡ Auto-updating values
 - 📱 Responsive design
 - 🎮 Keyboard and touch navigation
+- ✨ **NEW: Visual Editor** - Drag and drop text anywhere on slides
+- 🏷️ **NEW: Multiple Entities** - Support multiple entities per slide
+- 🎯 **NEW: Click-to-Edit** - Click elements to modify properties
+- 💾 **NEW: Live Preview** - See changes in real-time
 
 ## Installation
 
@@ -32,6 +36,7 @@ A custom Home Assistant Lovelace card that brings the power of [reveal.js](https
 
 ## Quick Start
 
+### Basic Configuration
 ```yaml
 type: custom:reveal-presentation-card
 title: Home Dashboard
@@ -39,12 +44,35 @@ theme: black
 height: 600
 slides:
   - title: Welcome
-    content: Your smart home at a glance
-  
-  - title: Temperature
-    entity: sensor.living_room_temperature
-    content: Temperature: {{entity.state}}°C
+    elements:
+      - type: text
+        content: Your smart home at a glance
+        position: { x: 50, y: 60 }
+        style: { fontSize: "1.5em", color: "#ffffff" }
+
+  - title: Live Data
+    elements:
+      - type: entity
+        entity: sensor.living_room_temperature
+        content: "Temperature: {{entity.state}}°C"
+        position: { x: 30, y: 50 }
+        style: { fontSize: "1.8em", color: "#00ff00" }
+      - type: entity
+        entity: sensor.humidity
+        content: "Humidity: {{entity.state}}%"
+        position: { x: 70, y: 70 }
+        style: { fontSize: "1.2em", color: "#0088ff" }
 ```
+
+### Using the Visual Editor
+
+1. Add the card to your dashboard
+2. Click the **"Edit Mode"** button in the top-right corner
+3. Use **"Add Text"** or **"Add Entity"** to create new elements
+4. **Drag elements** anywhere on the slide
+5. **Click elements** to modify their properties
+6. Click **"Save"** to persist your changes
+7. Click **"Exit Edit"** when done
 
 ## Configuration
 
