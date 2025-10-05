@@ -357,10 +357,10 @@ class RevealPresentationCard extends HTMLElement {
         }
 
         .edit-toolbar {
-          position: absolute;
+          position: fixed;
           top: 10px;
           right: 10px;
-          z-index: 1000;
+          z-index: 9999;
           display: flex;
           gap: 10px;
           background: rgba(0,0,0,0.8);
@@ -388,7 +388,7 @@ class RevealPresentationCard extends HTMLElement {
         }
 
         .element-properties {
-          position: absolute;
+          position: fixed;
           top: 60px;
           right: 10px;
           width: 300px;
@@ -396,9 +396,10 @@ class RevealPresentationCard extends HTMLElement {
           border: 1px solid #ccc;
           border-radius: 5px;
           padding: 15px;
-          z-index: 1001;
+          z-index: 10000;
           display: none;
           color: white;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
         .element-properties.show {
@@ -521,9 +522,47 @@ class RevealPresentationCard extends HTMLElement {
   // Editor functionality methods
   _toggleEditMode() {
     this._editMode = !this._editMode;
-    this.render();
     this._selectedElement = null;
     this._hideProperties();
+
+    // Update the toolbar buttons without re-rendering the entire card
+    this._updateEditToolbar();
+
+    // Re-render slides to show/hide edit mode styling
+    this.updateSlides();
+  }
+
+  _updateEditToolbar() {
+    const toolbar = this.shadowRoot.querySelector('.edit-toolbar');
+    if (!toolbar) return;
+
+    toolbar.innerHTML = `
+      <button class="edit-btn ${this._editMode ? 'active' : ''}"
+              onclick="this.getRootNode().host._toggleEditMode()">
+        ${this._editMode ? 'Exit Edit' : 'Edit Mode'}
+      </button>
+      ${this._editMode ? `
+        <button class="edit-btn" onclick="this.getRootNode().host._addTextElement()">
+          Add Text
+        </button>
+        <button class="edit-btn" onclick="this.getRootNode().host._addEntityElement()">
+          Add Entity
+        </button>
+        <button class="edit-btn" onclick="this.getRootNode().host._saveConfig()">
+          Save
+        </button>
+      ` : ''}
+    `;
+
+    // Update card-content class
+    const cardContent = this.shadowRoot.querySelector('.card-content');
+    if (cardContent) {
+      if (this._editMode) {
+        cardContent.classList.add('edit-mode');
+      } else {
+        cardContent.classList.remove('edit-mode');
+      }
+    }
   }
 
   _addTextElement() {
@@ -717,6 +756,9 @@ class RevealPresentationCard extends HTMLElement {
   }
 
   _saveConfig() {
+    // Exit edit mode to trigger re-render with saved state
+    this._editMode = false;
+
     // Fire event for Home Assistant to save the configuration
     const event = new CustomEvent('config-changed', {
       detail: { config: this._config },
@@ -725,9 +767,12 @@ class RevealPresentationCard extends HTMLElement {
     });
     this.dispatchEvent(event);
 
+    // Force a setConfig call to persist the changes
+    this.setConfig(this._config);
+
     // Also show a temporary notification
     const notification = document.createElement('div');
-    notification.textContent = 'Configuration saved!';
+    notification.textContent = 'Configuration saved! Please save the dashboard to persist changes.';
     notification.style.cssText = `
       position: fixed;
       top: 20px;
